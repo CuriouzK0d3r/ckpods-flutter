@@ -14,12 +14,12 @@ Podcast _$PodcastFromJson(Map<String, dynamic> json) => Podcast(
       publisher: json['publisher'] as String,
       category: json['category'] as String,
       language: json['language'] as String,
-      episodeCount: json['episodeCount'] as int? ?? 0,
+      episodeCount: (json['episodeCount'] as num?)?.toInt() ?? 0,
       lastUpdated: json['lastUpdated'] == null
           ? null
           : DateTime.parse(json['lastUpdated'] as String),
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      ratingCount: json['ratingCount'] as int? ?? 0,
+      ratingCount: (json['ratingCount'] as num?)?.toInt() ?? 0,
       episodes: (json['episodes'] as List<dynamic>?)
               ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -49,16 +49,16 @@ Episode _$EpisodeFromJson(Map<String, dynamic> json) => Episode(
       title: json['title'] as String,
       description: json['description'] as String,
       audioUrl: json['audioUrl'] as String,
-      duration: Duration(seconds: json['duration'] as int),
+      duration: Duration(microseconds: (json['duration'] as num).toInt()),
       publishDate: DateTime.parse(json['publishDate'] as String),
       thumbnailUrl: json['thumbnailUrl'] as String?,
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      ratingCount: json['ratingCount'] as int? ?? 0,
+      ratingCount: (json['ratingCount'] as num?)?.toInt() ?? 0,
       isPlayed: json['isPlayed'] as bool? ?? false,
       isDownloaded: json['isDownloaded'] as bool? ?? false,
       playbackPosition: json['playbackPosition'] == null
           ? null
-          : Duration(seconds: json['playbackPosition'] as int),
+          : Duration(microseconds: (json['playbackPosition'] as num).toInt()),
     );
 
 Map<String, dynamic> _$EpisodeToJson(Episode instance) => <String, dynamic>{
@@ -67,12 +67,12 @@ Map<String, dynamic> _$EpisodeToJson(Episode instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'audioUrl': instance.audioUrl,
-      'duration': instance.duration.inSeconds,
+      'duration': instance.duration.inMicroseconds,
       'publishDate': instance.publishDate.toIso8601String(),
       'thumbnailUrl': instance.thumbnailUrl,
       'rating': instance.rating,
       'ratingCount': instance.ratingCount,
       'isPlayed': instance.isPlayed,
       'isDownloaded': instance.isDownloaded,
-      'playbackPosition': instance.playbackPosition?.inSeconds,
+      'playbackPosition': instance.playbackPosition?.inMicroseconds,
     };

@@ -76,16 +76,22 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               imageUrl: episode.thumbnailUrl!,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
                                 child: const Icon(Icons.music_note, size: 64),
                               ),
                               errorWidget: (context, url, error) => Container(
-                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
                                 child: const Icon(Icons.music_note, size: 64),
                               ),
                             )
                           : Container(
-                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                               child: const Icon(Icons.music_note, size: 64),
                             ),
                     ),
@@ -110,9 +116,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                         const SizedBox(height: 8),
                         Text(
                           'Podcast Episode', // You might want to pass podcast title
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -124,23 +133,30 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               value: playerProvider.progress.clamp(0.0, 1.0),
                               onChanged: (value) {
                                 final newPosition = Duration(
-                                  milliseconds: (value * playerProvider.duration.inMilliseconds).round(),
+                                  milliseconds: (value *
+                                          playerProvider
+                                              .duration.inMilliseconds)
+                                      .round(),
                                 );
                                 playerProvider.seek(newPosition);
                               },
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     playerProvider.formattedPosition,
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                   Text(
                                     playerProvider.formattedDuration,
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                   ),
                                 ],
                               ),
@@ -163,11 +179,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              onPressed: () => _showSpeedSelector(context, userProvider),
+                              onPressed: () =>
+                                  _showSpeedSelector(context, userProvider),
                             ),
                             // Skip Backward
                             IconButton(
-                              icon: const Icon(Icons.replay_15),
+                              icon: const Icon(Icons.replay),
                               onPressed: () => playerProvider.skipBackward(),
                               iconSize: 32,
                             ),
@@ -189,7 +206,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     )
                                   : IconButton(
                                       icon: Icon(
-                                        playerProvider.isPlaying ? Icons.pause : Icons.play_arrow,
+                                        playerProvider.isPlaying
+                                            ? Icons.pause
+                                            : Icons.play_arrow,
                                         color: Colors.white,
                                       ),
                                       onPressed: playerProvider.togglePlayPause,
@@ -211,7 +230,8 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                         ? Icons.volume_down
                                         : Icons.volume_off,
                               ),
-                              onPressed: () => _showVolumeSlider(context, userProvider),
+                              onPressed: () =>
+                                  _showVolumeSlider(context, userProvider),
                             ),
                           ],
                         ),
@@ -234,11 +254,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.download_for_offline),
-                              onPressed: () => _downloadEpisode(context, episode),
+                              onPressed: () =>
+                                  _downloadEpisode(context, episode),
                               tooltip: 'Download',
                             ),
                             IconButton(
-                              icon: const Icon(Icons.sleep_timer),
+                              icon: const Icon(Icons.timer),
                               onPressed: () => _showSleepTimer(context),
                               tooltip: 'Sleep Timer',
                             ),
@@ -405,14 +426,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
   void _shareEpisode(BuildContext context, episode) {
     // Implement share functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share functionality would be implemented here')),
+      const SnackBar(
+          content: Text('Share functionality would be implemented here')),
     );
   }
 
   void _downloadEpisode(BuildContext context, episode) {
     // Implement download functionality
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Download functionality would be implemented here')),
+      const SnackBar(
+          content: Text('Download functionality would be implemented here')),
     );
   }
 

@@ -30,21 +30,26 @@ class PodcastCard extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color:
+                          Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
                     child: CachedNetworkImage(
                       imageUrl: podcast.artworkUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         child: const Icon(
-                          Icons.podcast,
+                          Icons.podcasts,
                           size: 48,
                         ),
                       ),
@@ -63,10 +68,15 @@ class PodcastCard extends StatelessWidget {
                             padding: EdgeInsets.zero,
                             iconSize: 16,
                             icon: Icon(
-                              podcast.isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: podcast.isFavorite ? Colors.red : Colors.white,
+                              podcast.isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: podcast.isFavorite
+                                  ? Colors.red
+                                  : Colors.white,
                             ),
-                            onPressed: () => podcastProvider.toggleFavorite(podcast),
+                            onPressed: () =>
+                                podcastProvider.toggleFavorite(podcast),
                           ),
                         );
                       },
@@ -91,8 +101,8 @@ class PodcastCard extends StatelessWidget {
                   Text(
                     podcast.publisher,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -123,8 +133,8 @@ class PodcastCard extends StatelessWidget {
                       Text(
                         '${podcast.episodeCount}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
                       ),
                     ],
                   ),
@@ -149,7 +159,7 @@ class PodcastCard extends StatelessWidget {
   }
 }
 
-class PodcastDetailsBottomSheet extends StatelessWidget {
+class PodcastDetailsBottomSheet extends StatefulWidget {
   final Podcast podcast;
 
   const PodcastDetailsBottomSheet({
@@ -158,7 +168,44 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
   });
 
   @override
+  State<PodcastDetailsBottomSheet> createState() => _PodcastDetailsBottomSheetState();
+}
+
+class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
+  List<Episode>? episodes;
+  bool isLoadingEpisodes = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEpisodes();
+  }
+
+  Future<void> _loadEpisodes() async {
+    try {
+      final podcastProvider = context.read<PodcastProvider>();
+      final loadedEpisodes = await podcastProvider.fetchEpisodesByPodcastId(widget.podcast.id);
+      
+      if (mounted) {
+        setState(() {
+          episodes = loadedEpisodes;
+          isLoadingEpisodes = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          episodes = [];
+          isLoadingEpisodes = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final podcast = widget.podcast;
+    
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
@@ -199,14 +246,18 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             width: 120,
                             height: 120,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            child: const Icon(Icons.podcast, size: 48),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                            child: const Icon(Icons.podcasts, size: 48),
                           ),
                           errorWidget: (context, url, error) => Container(
                             width: 120,
                             height: 120,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                            child: const Icon(Icons.podcast, size: 48),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
+                            child: const Icon(Icons.podcasts, size: 48),
                           ),
                         ),
                       ),
@@ -223,9 +274,13 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               podcast.publisher,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
                             ),
                             const SizedBox(height: 16),
                             Row(
@@ -245,9 +300,12 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                                 Consumer<PodcastProvider>(
                                   builder: (context, podcastProvider, child) {
                                     return IconButton.filled(
-                                      onPressed: () => podcastProvider.toggleFavorite(podcast),
+                                      onPressed: () => podcastProvider
+                                          .toggleFavorite(podcast),
                                       icon: Icon(
-                                        podcast.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                        podcast.isFavorite
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
                                       ),
                                     );
                                   },
@@ -264,8 +322,10 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStat(context, '${podcast.episodeCount}', 'Episodes'),
-                      _buildStat(context, podcast.rating.toStringAsFixed(1), 'Rating'),
+                      _buildStat(
+                          context, '${podcast.episodeCount}', 'Episodes'),
+                      _buildStat(
+                          context, podcast.rating.toStringAsFixed(1), 'Rating'),
                       _buildStat(context, podcast.category, 'Category'),
                     ],
                   ),
@@ -287,27 +347,50 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
-                  // Episodes would be loaded here
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.music_note,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Episodes will be loaded here',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  // Episodes Section
+                  if (isLoadingEpisodes)
+                    const Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Loading episodes...'),
+                          ],
+                        ),
+                      ),
+                    )
+                  else if (episodes != null && episodes!.isNotEmpty)
+                    ...episodes!.map((episode) => _buildEpisodeCard(context, episode))
+                  else
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
                               color: Theme.of(context).colorScheme.outline,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 12),
+                            Text(
+                              'No episodes available',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(context).colorScheme.outline,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -323,17 +406,183 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
         Text(
           value,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
         ),
       ],
     );
+  }
+
+  Widget _buildEpisodeCard(BuildContext context, Episode episode) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () {
+          // Handle episode tap - could play episode or show details
+          _playEpisode(context, episode);
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Play button
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.play_arrow,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Episode details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      episode.title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      episode.description,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDuration(episode.duration),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Icon(
+                          Icons.calendar_today,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.outline,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatDate(episode.publishDate),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // More options
+              IconButton(
+                onPressed: () => _showEpisodeOptions(context, episode),
+                icon: const Icon(Icons.more_vert),
+                iconSize: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _playEpisode(BuildContext context, Episode episode) {
+    // TODO: Implement episode playback
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Playing: ${episode.title}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showEpisodeOptions(BuildContext context, Episode episode) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.play_arrow),
+            title: const Text('Play'),
+            onTap: () {
+              Navigator.pop(context);
+              _playEpisode(context, episode);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.download),
+            title: const Text('Download'),
+            onTap: () {
+              Navigator.pop(context);
+              // TODO: Implement download
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.share),
+            title: const Text('Share'),
+            onTap: () {
+              Navigator.pop(context);
+              // TODO: Implement share
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    } else {
+      return '${minutes}m';
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    
+    if (difference == 0) {
+      return 'Today';
+    } else if (difference == 1) {
+      return 'Yesterday';
+    } else if (difference < 7) {
+      return '${difference}d ago';
+    } else {
+      return '${(difference / 7).floor()}w ago';
+    }
   }
 }

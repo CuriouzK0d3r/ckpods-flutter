@@ -19,7 +19,7 @@ class MiniPlayer extends StatelessWidget {
             color: Theme.of(context).colorScheme.surface,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, -2),
               ),
@@ -31,7 +31,8 @@ class MiniPlayer extends StatelessWidget {
               // Progress Bar
               LinearProgressIndicator(
                 value: playerProvider.progress,
-                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor:
+                    Theme.of(context).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Theme.of(context).colorScheme.primary,
                 ),
@@ -39,7 +40,8 @@ class MiniPlayer extends StatelessWidget {
               ),
               // Player Controls
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: episode.thumbnailUrl != null
@@ -51,20 +53,26 @@ class MiniPlayer extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             width: 48,
                             height: 48,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             child: const Icon(Icons.music_note),
                           ),
                           errorWidget: (context, url, error) => Container(
                             width: 48,
                             height: 48,
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             child: const Icon(Icons.music_note),
                           ),
                         )
                       : Container(
                           width: 48,
                           height: 48,
-                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
                           child: const Icon(Icons.music_note),
                         ),
                 ),
@@ -77,15 +85,15 @@ class MiniPlayer extends StatelessWidget {
                 subtitle: Text(
                   '${playerProvider.formattedPosition} / ${playerProvider.formattedDuration}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                 ),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Skip Backward Button
                     IconButton(
-                      icon: const Icon(Icons.replay_15),
+                      icon: const Icon(Icons.replay),
                       onPressed: () => playerProvider.skipBackward(),
                       iconSize: 24,
                     ),
@@ -100,7 +108,9 @@ class MiniPlayer extends StatelessWidget {
                     else
                       IconButton(
                         icon: Icon(
-                          playerProvider.isPlaying ? Icons.pause : Icons.play_arrow,
+                          playerProvider.isPlaying
+                              ? Icons.pause
+                              : Icons.play_arrow,
                         ),
                         onPressed: playerProvider.togglePlayPause,
                         iconSize: 32,
@@ -125,7 +135,8 @@ class MiniPlayer extends StatelessWidget {
   void _showPlayerScreen(BuildContext context) {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const PlayerScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const PlayerScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0);
           const end = Offset.zero;

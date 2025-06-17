@@ -31,13 +31,13 @@ class PodcastListItem extends StatelessWidget {
               width: 60,
               height: 60,
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Icon(Icons.podcast),
+              child: const Icon(Icons.podcasts),
             ),
             errorWidget: (context, url, error) => Container(
               width: 60,
               height: 60,
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Icon(Icons.podcast),
+              child: const Icon(Icons.podcasts),
             ),
           ),
         ),
@@ -54,8 +54,8 @@ class PodcastListItem extends StatelessWidget {
             Text(
               podcast.publisher,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
             ),
             const SizedBox(height: 4),
             Row(
@@ -82,8 +82,8 @@ class PodcastListItem extends StatelessWidget {
                 Text(
                   '${podcast.episodeCount} episodes',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                 ),
               ],
             ),
@@ -94,8 +94,8 @@ class PodcastListItem extends StatelessWidget {
             return IconButton(
               icon: Icon(
                 podcast.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: podcast.isFavorite 
-                    ? Colors.red 
+                color: podcast.isFavorite
+                    ? Colors.red
                     : Theme.of(context).colorScheme.outline,
               ),
               onPressed: () => podcastProvider.toggleFavorite(podcast),

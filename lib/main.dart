@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/podcast_provider.dart';
@@ -10,11 +11,19 @@ import 'utils/theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize services
-  await DatabaseService().initDatabase();
-  await NotificationService().initialize();
-  
+
+  // Initialize services (skip database on web due to SQLite limitations)
+  try {
+    if (!kIsWeb) {
+      await DatabaseService().initDatabase();
+    }
+    if (!kIsWeb) {
+      await NotificationService().initialize();
+    }
+  } catch (e) {
+    debugPrint('Service initialization warning: $e');
+  }
+
   runApp(const MyApp());
 }
 

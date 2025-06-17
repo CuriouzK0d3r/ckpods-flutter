@@ -33,7 +33,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     child: const CategoryChips(),
                   ),
                 ),
-                
+
                 // Error message
                 if (podcastProvider.errorMessage != null)
                   SliverToBoxAdapter(
@@ -92,7 +92,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
-                            Icons.podcast,
+                            Icons.podcasts,
                             size: 64,
                             color: Theme.of(context).colorScheme.outline,
                           ),

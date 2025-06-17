@@ -55,11 +55,11 @@ UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) => UserSettings(
       skipIntro: json['skipIntro'] as bool? ?? false,
       skipIntroLength: json['skipIntroLength'] == null
           ? const Duration(seconds: 30)
-          : Duration(microseconds: json['skipIntroLength'] as int),
+          : Duration(microseconds: (json['skipIntroLength'] as num).toInt()),
       skipOutro: json['skipOutro'] as bool? ?? false,
       skipOutroLength: json['skipOutroLength'] == null
           ? const Duration(seconds: 30)
-          : Duration(microseconds: json['skipOutroLength'] as int),
+          : Duration(microseconds: (json['skipOutroLength'] as num).toInt()),
     );
 
 Map<String, dynamic> _$UserSettingsToJson(UserSettings instance) =>
@@ -86,40 +86,3 @@ const _$PlaybackQualityEnumMap = {
   PlaybackQuality.high: 'high',
   PlaybackQuality.ultra: 'ultra',
 };
-
-T $enumDecode<T>(
-  Map<T, Object> enumValues,
-  Object? source, {
-  T? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
-
-T? $enumDecodeNullable<T>(
-  Map<T, Object> enumValues,
-  dynamic source, {
-  T? unknownValue,
-}) {
-  if (source == null) {
-    return null;
-  }
-  return $enumDecode<T>(enumValues, source, unknownValue: unknownValue);
-}

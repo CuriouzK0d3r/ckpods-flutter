@@ -154,11 +154,21 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Podcast?> getPodcastById(String id) async {
+  Future<List<Episode>> fetchEpisodesByPodcastId(String podcastId) async {
+    try {
+      return await _podcastService.fetchEpisodesByPodcastId(podcastId);
+    } catch (e) {
+      _errorMessage = 'Failed to fetch episodes: $e';
+      notifyListeners();
+      return [];
+    }
+  }
+
+  Future<Podcast?> fetchPodcastById(String id) async {
     try {
       return await _podcastService.fetchPodcastById(id);
     } catch (e) {
-      _errorMessage = 'Failed to load podcast details: $e';
+      _errorMessage = 'Failed to fetch podcast: $e';
       notifyListeners();
       return null;
     }
