@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'providers/podcast_provider.dart';
 import 'providers/player_provider.dart';
 import 'providers/user_provider.dart';

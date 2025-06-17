@@ -1,5 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -10,6 +12,9 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    // Initialize timezone data
+    tz_data.initializeTimeZones();
+
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -138,9 +143,7 @@ class NotificationService {
       autoCancel: false,
       showWhen: false,
       icon: '@mipmap/ic_launcher',
-      styleInformation: MediaStyleInformation(
-        mediaControl: MediaControl.pause,
-      ),
+      styleInformation: MediaStyleInformation(),
     );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
@@ -172,7 +175,7 @@ class NotificationService {
     // Schedule a periodic check for new episodes
     // This would typically be handled by a background service
     // For now, we'll implement a simple notification scheduling
-    
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'updates',
@@ -200,11 +203,12 @@ class NotificationService {
       999,
       'Check for New Episodes',
       'Tap to refresh your podcast library',
-      DateTime.now().add(const Duration(hours: 24)).toLocal(),
+      tz.TZDateTime.now(tz.local).add(const Duration(hours: 24)),
       platformChannelSpecifics,
       payload: 'update_check',
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
@@ -214,8 +218,8 @@ class NotificationService {
 
   Future<bool> areNotificationsEnabled() async {
     if (Platform.isAndroid) {
-      final androidImplementation =
-          _flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+      final androidImplementation = _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
       return await androidImplementation?.areNotificationsEnabled() ?? false;
     }

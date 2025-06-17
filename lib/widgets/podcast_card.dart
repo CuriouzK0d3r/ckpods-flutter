@@ -30,19 +30,19 @@ class PodcastCard extends StatelessWidget {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant,
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     ),
                     child: CachedNetworkImage(
                       imageUrl: podcast.artworkUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         child: const Center(
                           child: CircularProgressIndicator(),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Theme.of(context).colorScheme.surfaceVariant,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         child: const Icon(
                           Icons.podcast,
                           size: 48,
@@ -101,7 +101,7 @@ class PodcastCard extends StatelessWidget {
                     children: [
                       // Rating
                       if (podcast.rating > 0) ...[
-                        Icon(
+                        const Icon(
                           Icons.star,
                           size: 14,
                           color: Colors.amber,
@@ -199,13 +199,13 @@ class PodcastDetailsBottomSheet extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             width: 120,
                             height: 120,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: const Icon(Icons.podcast, size: 48),
                           ),
                           errorWidget: (context, url, error) => Container(
                             width: 120,
                             height: 120,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: const Icon(Icons.podcast, size: 48),
                           ),
                         ),

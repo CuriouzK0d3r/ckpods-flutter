@@ -30,13 +30,13 @@ class PodcastListItem extends StatelessWidget {
             placeholder: (context, url) => Container(
               width: 60,
               height: 60,
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: const Icon(Icons.podcast),
             ),
             errorWidget: (context, url, error) => Container(
               width: 60,
               height: 60,
-              color: Theme.of(context).colorScheme.surfaceVariant,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: const Icon(Icons.podcast),
             ),
           ),
@@ -61,7 +61,7 @@ class PodcastListItem extends StatelessWidget {
             Row(
               children: [
                 if (podcast.rating > 0) ...[
-                  Icon(
+                  const Icon(
                     Icons.star,
                     size: 14,
                     color: Colors.amber,

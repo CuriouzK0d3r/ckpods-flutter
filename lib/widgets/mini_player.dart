@@ -31,7 +31,7 @@ class MiniPlayer extends StatelessWidget {
               // Progress Bar
               LinearProgressIndicator(
                 value: playerProvider.progress,
-                backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Theme.of(context).colorScheme.primary,
                 ),
@@ -51,20 +51,20 @@ class MiniPlayer extends StatelessWidget {
                           placeholder: (context, url) => Container(
                             width: 48,
                             height: 48,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: const Icon(Icons.music_note),
                           ),
                           errorWidget: (context, url, error) => Container(
                             width: 48,
                             height: 48,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             child: const Icon(Icons.music_note),
                           ),
                         )
                       : Container(
                           width: 48,
                           height: 48,
-                          color: Theme.of(context).colorScheme.surfaceVariant,
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
                           child: const Icon(Icons.music_note),
                         ),
                 ),

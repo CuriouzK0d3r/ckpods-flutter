@@ -26,8 +26,6 @@ class AppTheme {
         onSecondary: Colors.white,
         surface: surfaceColor,
         onSurface: textPrimaryColor,
-        background: backgroundColor,
-        onBackground: textPrimaryColor,
         error: errorColor,
         onError: Colors.white,
       ),
@@ -43,14 +41,13 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarTheme(
-        backgroundColor: surfaceColor,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: primaryColor,
         unselectedItemColor: textSecondaryColor,
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         color: surfaceColor,
         shape: RoundedRectangleBorder(
@@ -168,8 +165,6 @@ class AppTheme {
         onSecondary: Colors.black,
         surface: darkSurfaceColor,
         onSurface: textDarkPrimaryColor,
-        background: darkBackgroundColor,
-        onBackground: textDarkPrimaryColor,
         error: errorColor,
         onError: Colors.white,
       ),
@@ -185,14 +180,13 @@ class AppTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarTheme(
-        backgroundColor: darkSurfaceColor,
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         selectedItemColor: primaryDarkColor,
         unselectedItemColor: textDarkSecondaryColor,
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 2,
         color: darkSurfaceColor,
         shape: RoundedRectangleBorder(

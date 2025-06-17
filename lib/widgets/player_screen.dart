@@ -13,7 +13,7 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  bool _showSpeedOptions = false;
+  final bool _showSpeedOptions = false;
 
   @override
   Widget build(BuildContext context) {
@@ -76,16 +76,16 @@ class _PlayerScreenState extends State<PlayerScreen> {
                               imageUrl: episode.thumbnailUrl!,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
-                                color: Theme.of(context).colorScheme.surfaceVariant,
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 child: const Icon(Icons.music_note, size: 64),
                               ),
                               errorWidget: (context, url, error) => Container(
-                                color: Theme.of(context).colorScheme.surfaceVariant,
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                                 child: const Icon(Icons.music_note, size: 64),
                               ),
                             )
                           : Container(
-                              color: Theme.of(context).colorScheme.surfaceVariant,
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
                               child: const Icon(Icons.music_note, size: 64),
                             ),
                     ),

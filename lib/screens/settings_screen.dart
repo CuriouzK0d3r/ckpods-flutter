@@ -214,10 +214,10 @@ class SettingsScreen extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
                   children: [
-                    ListTile(
-                      leading: const Icon(Icons.info),
-                      title: const Text('App Version'),
-                      subtitle: const Text('1.0.0'),
+                    const ListTile(
+                      leading: Icon(Icons.info),
+                      title: Text('App Version'),
+                      subtitle: Text('1.0.0'),
                     ),
                     const Divider(height: 1),
                     ListTile(
