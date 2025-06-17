@@ -91,14 +91,30 @@ class PodcastListItem extends StatelessWidget {
         ),
         trailing: Consumer<PodcastProvider>(
           builder: (context, podcastProvider, child) {
-            return IconButton(
-              icon: Icon(
-                podcast.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: podcast.isFavorite
-                    ? Colors.red
-                    : Theme.of(context).colorScheme.outline,
-              ),
-              onPressed: () => podcastProvider.toggleFavorite(podcast),
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    podcast.isSubscribed
+                        ? Icons.notifications_active
+                        : Icons.notifications_none,
+                    color: podcast.isSubscribed
+                        ? Colors.blue
+                        : Theme.of(context).colorScheme.outline,
+                  ),
+                  onPressed: () => podcastProvider.toggleSubscription(podcast),
+                ),
+                IconButton(
+                  icon: Icon(
+                    podcast.isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: podcast.isFavorite
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.outline,
+                  ),
+                  onPressed: () => podcastProvider.toggleFavorite(podcast),
+                ),
+              ],
             );
           },
         ),

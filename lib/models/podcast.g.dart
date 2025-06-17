@@ -25,6 +25,7 @@ Podcast _$PodcastFromJson(Map<String, dynamic> json) => Podcast(
               .toList() ??
           const [],
       isFavorite: json['isFavorite'] as bool? ?? false,
+      isSubscribed: json['isSubscribed'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$PodcastToJson(Podcast instance) => <String, dynamic>{
@@ -41,6 +42,7 @@ Map<String, dynamic> _$PodcastToJson(Podcast instance) => <String, dynamic>{
       'ratingCount': instance.ratingCount,
       'episodes': instance.episodes,
       'isFavorite': instance.isFavorite,
+      'isSubscribed': instance.isSubscribed,
     };
 
 Episode _$EpisodeFromJson(Map<String, dynamic> json) => Episode(

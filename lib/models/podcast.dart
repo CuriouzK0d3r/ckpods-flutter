@@ -17,6 +17,7 @@ class Podcast {
   final int ratingCount;
   final List<Episode> episodes;
   final bool isFavorite;
+  final bool isSubscribed;
 
   Podcast({
     required this.id,
@@ -32,9 +33,11 @@ class Podcast {
     this.ratingCount = 0,
     this.episodes = const [],
     this.isFavorite = false,
+    this.isSubscribed = false,
   });
 
-  factory Podcast.fromJson(Map<String, dynamic> json) => _$PodcastFromJson(json);
+  factory Podcast.fromJson(Map<String, dynamic> json) =>
+      _$PodcastFromJson(json);
   Map<String, dynamic> toJson() => _$PodcastToJson(this);
 
   Podcast copyWith({
@@ -51,6 +54,7 @@ class Podcast {
     int? ratingCount,
     List<Episode>? episodes,
     bool? isFavorite,
+    bool? isSubscribed,
   }) {
     return Podcast(
       id: id ?? this.id,
@@ -66,6 +70,7 @@ class Podcast {
       ratingCount: ratingCount ?? this.ratingCount,
       episodes: episodes ?? this.episodes,
       isFavorite: isFavorite ?? this.isFavorite,
+      isSubscribed: isSubscribed ?? this.isSubscribed,
     );
   }
 }
@@ -102,7 +107,8 @@ class Episode {
     this.playbackPosition,
   });
 
-  factory Episode.fromJson(Map<String, dynamic> json) => _$EpisodeFromJson(json);
+  factory Episode.fromJson(Map<String, dynamic> json) =>
+      _$EpisodeFromJson(json);
   Map<String, dynamic> toJson() => _$EpisodeToJson(this);
 
   Episode copyWith({
@@ -141,7 +147,7 @@ class Episode {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
     final seconds = duration.inSeconds.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {

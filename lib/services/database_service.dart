@@ -242,6 +242,93 @@ class DatabaseService {
     return maps.isNotEmpty;
   }
 
+  // Subscription operations
+  Future<void> addToSubscriptions(String podcastId) async {
+    if (kIsWeb) {
+      // For web, use SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final subscriptions = prefs.getStringList('subscriptions') ?? [];
+      if (!subscriptions.contains(podcastId)) {
+        subscriptions.add(podcastId);
+        await prefs.setStringList('subscriptions', subscriptions);
+      }
+      return;
+    }
+    final db = await database;
+    await db.insert(
+      'subscriptions',
+      {'podcastId': podcastId},
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  Future<void> removeFromSubscriptions(String podcastId) async {
+    if (kIsWeb) {
+      // For web, use SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final subscriptions = prefs.getStringList('subscriptions') ?? [];
+      subscriptions.remove(podcastId);
+      await prefs.setStringList('subscriptions', subscriptions);
+      return;
+    }
+    final db = await database;
+    await db.delete(
+      'subscriptions',
+      where: 'podcastId = ?',
+      whereArgs: [podcastId],
+    );
+  }
+
+  Future<bool> isSubscribed(String podcastId) async {
+    if (kIsWeb) {
+      // For web, use SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final subscriptions = prefs.getStringList('subscriptions') ?? [];
+      return subscriptions.contains(podcastId);
+    }
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'subscriptions',
+      where: 'podcastId = ?',
+      whereArgs: [podcastId],
+    );
+    return maps.isNotEmpty;
+  }
+
+  Future<List<Podcast>> getSubscribedPodcasts() async {
+    if (kIsWeb) {
+      // For web, return empty list
+      // In a real app, you'd fetch these from cloud storage or IndexedDB
+      return [];
+    }
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+      SELECT p.* FROM podcasts p
+      INNER JOIN subscriptions s ON p.id = s.podcastId
+      ORDER BY s.createdAt DESC
+    ''');
+
+    return List.generate(maps.length, (i) {
+      final map = maps[i];
+      return Podcast(
+        id: map['id'],
+        title: map['title'],
+        description: map['description'] ?? '',
+        artworkUrl: map['artworkUrl'] ?? '',
+        publisher: map['publisher'] ?? '',
+        category: map['category'] ?? '',
+        language: map['language'] ?? '',
+        episodeCount: map['episodeCount'] ?? 0,
+        lastUpdated: map['lastUpdated'] != null
+            ? DateTime.parse(map['lastUpdated'])
+            : null,
+        rating: map['rating'] ?? 0.0,
+        ratingCount: map['ratingCount'] ?? 0,
+        isFavorite: map['isFavorite'] == 1,
+      );
+    });
+  }
+
   // Episode operations
   Future<void> saveEpisode(Episode episode) async {
     final db = await database;

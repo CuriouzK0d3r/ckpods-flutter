@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-  
+
   final List<Widget> _screens = [
     const DiscoverScreen(),
     const SearchScreen(),
@@ -33,17 +33,57 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeApp();
     });
+
+    // Listen for success and error messages
+    context.read<PodcastProvider>().addListener(_handlePodcastProviderMessages);
+  }
+
+  @override
+  void dispose() {
+    context
+        .read<PodcastProvider>()
+        .removeListener(_handlePodcastProviderMessages);
+    super.dispose();
   }
 
   Future<void> _initializeApp() async {
     final podcastProvider = context.read<PodcastProvider>();
     final userProvider = context.read<UserProvider>();
-    
+
     // Initialize providers
     await Future.wait([
       podcastProvider.initialize(),
       userProvider.initialize(),
     ]);
+  }
+
+  void _handlePodcastProviderMessages() {
+    final podcastProvider = context.read<PodcastProvider>();
+
+    if (podcastProvider.successMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(podcastProvider.successMessage!),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+
+    if (podcastProvider.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(podcastProvider.errorMessage!),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Dismiss',
+            textColor: Colors.white,
+            onPressed: () => podcastProvider.clearError(),
+          ),
+        ),
+      );
+    }
   }
 
   @override

@@ -84,10 +84,34 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 
   Widget _buildSubscriptionsTab() {
-    return _buildEmptyState(
-      icon: Icons.subscriptions,
-      title: 'No Subscriptions',
-      subtitle: 'Podcasts you subscribe to will appear here',
+    return Consumer<PodcastProvider>(
+      builder: (context, podcastProvider, child) {
+        if (podcastProvider.subscribedPodcasts.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.subscriptions,
+            title: 'No Subscriptions',
+            subtitle: 'Podcasts you subscribe to will appear here',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: podcastProvider.subscribedPodcasts.length,
+          itemBuilder: (context, index) {
+            final podcast = podcastProvider.subscribedPodcasts[index];
+            return PodcastListItem(
+              podcast: podcast,
+              onTap: () {
+                // Navigate to podcast details
+                Navigator.of(context).pushNamed(
+                  '/podcast-details',
+                  arguments: podcast,
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
@@ -117,15 +141,15 @@ class _LibraryScreenState extends State<LibraryScreen>
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
             subtitle,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
+                  color: Theme.of(context).colorScheme.outline,
+                ),
             textAlign: TextAlign.center,
           ),
         ],

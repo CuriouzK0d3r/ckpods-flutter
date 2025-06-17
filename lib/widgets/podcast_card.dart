@@ -55,29 +55,52 @@ class PodcastCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // Favorite Button
+                  // Action Buttons
                   Positioned(
                     top: 8,
                     right: 8,
                     child: Consumer<PodcastProvider>(
                       builder: (context, podcastProvider, child) {
-                        return CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Colors.black54,
-                          child: IconButton(
-                            padding: EdgeInsets.zero,
-                            iconSize: 16,
-                            icon: Icon(
-                              podcast.isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: podcast.isFavorite
-                                  ? Colors.red
-                                  : Colors.white,
+                        return Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Colors.black54,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                iconSize: 16,
+                                icon: Icon(
+                                  podcast.isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: podcast.isFavorite
+                                      ? Colors.red
+                                      : Colors.white,
+                                ),
+                                onPressed: () =>
+                                    podcastProvider.toggleFavorite(podcast),
+                              ),
                             ),
-                            onPressed: () =>
-                                podcastProvider.toggleFavorite(podcast),
-                          ),
+                            const SizedBox(height: 4),
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: Colors.black54,
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                iconSize: 16,
+                                icon: Icon(
+                                  podcast.isSubscribed
+                                      ? Icons.notifications_active
+                                      : Icons.notifications_none,
+                                  color: podcast.isSubscribed
+                                      ? Colors.blue
+                                      : Colors.white,
+                                ),
+                                onPressed: () =>
+                                    podcastProvider.toggleSubscription(podcast),
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -168,7 +191,8 @@ class PodcastDetailsBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<PodcastDetailsBottomSheet> createState() => _PodcastDetailsBottomSheetState();
+  State<PodcastDetailsBottomSheet> createState() =>
+      _PodcastDetailsBottomSheetState();
 }
 
 class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
@@ -184,8 +208,9 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
   Future<void> _loadEpisodes() async {
     try {
       final podcastProvider = context.read<PodcastProvider>();
-      final loadedEpisodes = await podcastProvider.fetchEpisodesByPodcastId(widget.podcast.id);
-      
+      final loadedEpisodes =
+          await podcastProvider.fetchEpisodesByPodcastId(widget.podcast.id);
+
       if (mounted) {
         setState(() {
           episodes = loadedEpisodes;
@@ -205,7 +230,7 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final podcast = widget.podcast;
-    
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
@@ -287,12 +312,31 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                               children: [
                                 // Subscribe Button
                                 Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      // Handle subscribe
+                                  child: Consumer<PodcastProvider>(
+                                    builder: (context, podcastProvider, child) {
+                                      return ElevatedButton.icon(
+                                        onPressed: () => podcastProvider
+                                            .toggleSubscription(podcast),
+                                        icon: Icon(
+                                          podcast.isSubscribed
+                                              ? Icons.notifications_active
+                                              : Icons.notifications_none,
+                                        ),
+                                        label: Text(
+                                          podcast.isSubscribed
+                                              ? 'Subscribed'
+                                              : 'Subscribe',
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: podcast.isSubscribed
+                                              ? Colors.blue
+                                              : null,
+                                          foregroundColor: podcast.isSubscribed
+                                              ? Colors.white
+                                              : null,
+                                        ),
+                                      );
                                     },
-                                    icon: const Icon(Icons.add),
-                                    label: const Text('Subscribe'),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -306,6 +350,14 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                                         podcast.isFavorite
                                             ? Icons.favorite
                                             : Icons.favorite_border,
+                                      ),
+                                      style: IconButton.styleFrom(
+                                        backgroundColor: podcast.isFavorite
+                                            ? Colors.red
+                                            : null,
+                                        foregroundColor: podcast.isFavorite
+                                            ? Colors.white
+                                            : null,
                                       ),
                                     );
                                   },
@@ -366,7 +418,8 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                       ),
                     )
                   else if (episodes != null && episodes!.isNotEmpty)
-                    ...episodes!.map((episode) => _buildEpisodeCard(context, episode))
+                    ...episodes!
+                        .map((episode) => _buildEpisodeCard(context, episode))
                   else
                     Card(
                       child: Padding(
@@ -384,7 +437,8 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                                   .textTheme
                                   .bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(context).colorScheme.outline,
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
                                   ),
                             ),
                           ],
@@ -456,8 +510,8 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                     Text(
                       episode.title,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                            fontWeight: FontWeight.w600,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -465,8 +519,8 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                     Text(
                       episode.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -481,9 +535,12 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                         const SizedBox(width: 4),
                         Text(
                           _formatDuration(episode.duration),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                         const SizedBox(width: 16),
                         Icon(
@@ -494,9 +551,12 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
                         const SizedBox(width: 4),
                         Text(
                           _formatDate(episode.publishDate),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                         ),
                       ],
                     ),
@@ -563,7 +623,7 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else {
@@ -574,7 +634,7 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date).inDays;
-    
+
     if (difference == 0) {
       return 'Today';
     } else if (difference == 1) {

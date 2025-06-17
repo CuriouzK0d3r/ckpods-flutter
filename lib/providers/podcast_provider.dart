@@ -9,6 +9,7 @@ class PodcastProvider with ChangeNotifier {
 
   List<Podcast> _podcasts = [];
   List<Podcast> _favoritePodcasts = [];
+  List<Podcast> _subscribedPodcasts = [];
   List<Podcast> _searchResults = [];
   List<String> _categories = [];
   String _selectedCategory = 'All';
@@ -16,10 +17,12 @@ class PodcastProvider with ChangeNotifier {
   bool _isSearching = false;
   String _searchQuery = '';
   String? _errorMessage;
+  String? _successMessage;
 
   // Getters
   List<Podcast> get podcasts => _podcasts;
   List<Podcast> get favoritePodcasts => _favoritePodcasts;
+  List<Podcast> get subscribedPodcasts => _subscribedPodcasts;
   List<Podcast> get searchResults => _searchResults;
   List<String> get categories => _categories;
   String get selectedCategory => _selectedCategory;
@@ -27,11 +30,13 @@ class PodcastProvider with ChangeNotifier {
   bool get isSearching => _isSearching;
   String get searchQuery => _searchQuery;
   String? get errorMessage => _errorMessage;
+  String? get successMessage => _successMessage;
 
   Future<void> initialize() async {
     await loadCategories();
     await loadPodcasts();
     await loadFavoritePodcasts();
+    await loadSubscribedPodcasts();
   }
 
   Future<void> loadPodcasts({String? category}) async {
@@ -43,9 +48,20 @@ class PodcastProvider with ChangeNotifier {
       final fetchedPodcasts = await _podcastService.fetchPodcasts(
         category: category != 'All' ? category : null,
       );
-      
-      _podcasts = fetchedPodcasts;
-      
+
+      // Check subscription status for each podcast
+      final podcastsWithStatus = <Podcast>[];
+      for (final podcast in fetchedPodcasts) {
+        final isSubscribed = await _databaseService.isSubscribed(podcast.id);
+        final isFavorite = await _databaseService.isFavorite(podcast.id);
+        podcastsWithStatus.add(podcast.copyWith(
+          isSubscribed: isSubscribed,
+          isFavorite: isFavorite,
+        ));
+      }
+
+      _podcasts = podcastsWithStatus;
+
       // Save podcasts to local database
       for (final podcast in _podcasts) {
         await _databaseService.savePodcast(podcast);
@@ -64,6 +80,16 @@ class PodcastProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _errorMessage = 'Failed to load favorite podcasts: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadSubscribedPodcasts() async {
+    try {
+      _subscribedPodcasts = await _databaseService.getSubscribedPodcasts();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to load subscribed podcasts: $e';
       notifyListeners();
     }
   }
@@ -94,7 +120,19 @@ class PodcastProvider with ChangeNotifier {
 
     try {
       final results = await _podcastService.fetchPodcasts(searchQuery: query);
-      _searchResults = results;
+
+      // Check subscription status for each search result
+      final resultsWithStatus = <Podcast>[];
+      for (final podcast in results) {
+        final isSubscribed = await _databaseService.isSubscribed(podcast.id);
+        final isFavorite = await _databaseService.isFavorite(podcast.id);
+        resultsWithStatus.add(podcast.copyWith(
+          isSubscribed: isSubscribed,
+          isFavorite: isFavorite,
+        ));
+      }
+
+      _searchResults = resultsWithStatus;
     } catch (e) {
       _errorMessage = 'Search failed: $e';
     } finally {
@@ -121,19 +159,52 @@ class PodcastProvider with ChangeNotifier {
   Future<void> toggleFavorite(Podcast podcast) async {
     try {
       final isFavorite = await _databaseService.isFavorite(podcast.id);
-      
+
       if (isFavorite) {
         await _databaseService.removeFromFavorites(podcast.id);
       } else {
         await _databaseService.addToFavorites(podcast.id);
         await _databaseService.savePodcast(podcast);
       }
-      
+
       // Update the podcast in the lists
       _updatePodcastInLists(podcast.copyWith(isFavorite: !isFavorite));
       await loadFavoritePodcasts();
     } catch (e) {
       _errorMessage = 'Failed to update favorite: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleSubscription(Podcast podcast) async {
+    try {
+      final isSubscribed = await _databaseService.isSubscribed(podcast.id);
+
+      if (isSubscribed) {
+        await _databaseService.removeFromSubscriptions(podcast.id);
+      } else {
+        await _databaseService.addToSubscriptions(podcast.id);
+        await _databaseService.savePodcast(podcast);
+      }
+
+      // Update the podcast in the lists
+      _updatePodcastInLists(podcast.copyWith(isSubscribed: !isSubscribed));
+      await loadSubscribedPodcasts();
+
+      // Show success message
+      final message = isSubscribed
+          ? 'Unsubscribed from ${podcast.title}'
+          : 'Subscribed to ${podcast.title}';
+      _successMessage = message;
+      notifyListeners();
+
+      // Clear success message after a delay
+      Future.delayed(const Duration(seconds: 3), () {
+        _successMessage = null;
+        notifyListeners();
+      });
+    } catch (e) {
+      _errorMessage = 'Failed to update subscription: $e';
       notifyListeners();
     }
   }
@@ -146,7 +217,8 @@ class PodcastProvider with ChangeNotifier {
     }
 
     // Update in search results
-    final searchIndex = _searchResults.indexWhere((p) => p.id == updatedPodcast.id);
+    final searchIndex =
+        _searchResults.indexWhere((p) => p.id == updatedPodcast.id);
     if (searchIndex != -1) {
       _searchResults[searchIndex] = updatedPodcast;
     }
@@ -189,7 +261,21 @@ class PodcastProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearSuccessMessage() {
+    _successMessage = null;
+    notifyListeners();
+  }
+
   Future<void> refreshPodcasts() async {
-    await loadPodcasts(category: _selectedCategory != 'All' ? _selectedCategory : null);
+    await loadPodcasts(
+        category: _selectedCategory != 'All' ? _selectedCategory : null);
+  }
+
+  Future<bool> isPodcastSubscribed(String podcastId) async {
+    return await _databaseService.isSubscribed(podcastId);
+  }
+
+  Future<bool> isPodcastFavorite(String podcastId) async {
+    return await _databaseService.isFavorite(podcastId);
   }
 }
