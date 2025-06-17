@@ -37,7 +37,7 @@ dependencies:
   shimmer: ^3.0.0
   
   # Notifications
-  flutter_local_notifications: ^16.3.2
+  flutter_local_notifications: ^17.2.3
   
   # JSON Serialization
   json_annotation: ^4.8.1
@@ -62,9 +62,10 @@ flutter:
     - assets/images/
     - assets/icons/
   
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: fonts/Roboto-Regular.ttf
-        - asset: fonts/Roboto-Bold.ttf
-          weight: 700
+  # Fonts disabled for better web compatibility
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700

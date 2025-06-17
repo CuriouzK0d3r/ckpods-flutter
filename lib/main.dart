@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         title: 'CKPods - Podcast App',
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
+        themeMode: kIsWeb ? ThemeMode.light : ThemeMode.system, // Force light theme on web
         home: const HomeScreen(),
         debugShowCheckedModeBanner: false,
       ),
