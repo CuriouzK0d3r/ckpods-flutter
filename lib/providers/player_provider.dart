@@ -222,37 +222,139 @@ class PlayerProvider with ChangeNotifier {
     }
   }
 
-  void togglePlayPause() {
-    if (_isPlaying) {
-      pause();
-    } else {
-      play();
-    }
-  }
-
-  String get formattedPosition {
-    return _formatDuration(_position);
-  }
-
-  String get formattedDuration {
-    return _formatDuration(_duration);
-  }
-
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    
-    if (hours > 0) {
-      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    } else {
-      return '$minutes:${seconds.toString().padLeft(2, '0')}';
-    }
-  }
-
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // Enhanced player methods
+  
+  Future<void> togglePlayPause() async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.togglePlayPause();
+    } catch (e) {
+      _errorMessage = 'Failed to toggle playback: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> seekToPercentage(double percentage) async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.seekToPercentage(percentage);
+    } catch (e) {
+      _errorMessage = 'Failed to seek: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> seekToPosition(Duration position) async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.seek(position);
+    } catch (e) {
+      _errorMessage = 'Failed to seek: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> skipForward30() async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.skipForward30();
+    } catch (e) {
+      _errorMessage = 'Failed to skip forward: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> skipBackward15() async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.skipBackward15();
+    } catch (e) {
+      _errorMessage = 'Failed to skip backward: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> replay10() async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.replay10();
+    } catch (e) {
+      _errorMessage = 'Failed to replay: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> changeSpeed(double speed) async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.setSpeed(speed);
+      _speed = speed;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to change speed: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> changeVolume(double volume) async {
+    if (_currentEpisode == null) return;
+    
+    try {
+      await _audioService.setVolume(volume);
+      _volume = volume;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Failed to change volume: $e';
+      notifyListeners();
+    }
+  }
+
+  // Utility methods
+  
+  bool isEpisodePlaying(String episodeId) {
+    return _audioService.isEpisodePlaying(episodeId);
+  }
+
+  bool isEpisodeLoaded(String episodeId) {
+    return _audioService.isEpisodeLoaded(episodeId);
+  }
+
+  String get positionString => _audioService.positionString;
+  String get durationString => _audioService.durationString;
+  String get remainingTimeString => _audioService.remainingTimeString;
+
+  double get progressPercentage => progress * 100;
+
+  String get formattedProgress {
+    return '$positionString / $durationString';
+  }
+
+  bool get hasEpisode => _currentEpisode != null;
+
+  String? get currentEpisodeTitle => _currentEpisode?.title;
+  String? get currentPodcastTitle => _currentEpisode?.podcastId; // Would need podcast title lookup
+
+  // Episode completion check
+  bool get isNearEnd {
+    return _duration.inSeconds > 0 && 
+           (_duration.inSeconds - _position.inSeconds) < 30;
+  }
+
+  bool get isCompleted {
+    return _duration.inSeconds > 0 && 
+           _position.inSeconds >= (_duration.inSeconds * 0.95); // 95% completion
   }
 
   @override

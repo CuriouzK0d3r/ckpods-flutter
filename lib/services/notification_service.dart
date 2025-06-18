@@ -2,6 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:io';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
+import '../models/podcast.dart';
+import '../services/subscription_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -224,5 +226,147 @@ class NotificationService {
       return await androidImplementation?.areNotificationsEnabled() ?? false;
     }
     return true; // iOS handles permissions differently
+  }
+
+  // Subscription-specific notification methods
+
+  /// Check for new episodes and send notifications
+  Future<void> checkAndNotifyNewEpisodes() async {
+    final subscriptionService = SubscriptionService();
+
+    if (!await subscriptionService.areNewEpisodeNotificationsEnabled()) {
+      return;
+    }
+
+    try {
+      final newEpisodesMap = await subscriptionService.checkForNewEpisodes();
+
+      if (newEpisodesMap.isEmpty) return;
+
+      int totalNewEpisodes = 0;
+      for (final episodes in newEpisodesMap.values) {
+        totalNewEpisodes += episodes.length;
+      }
+
+      // Show summary notification if there are multiple new episodes
+      if (totalNewEpisodes > 1) {
+        await _showSummaryNotification(totalNewEpisodes, newEpisodesMap.length);
+      }
+
+      // Show individual notifications for each podcast with new episodes
+      int notificationId = 1000; // Start from 1000 to avoid conflicts
+      for (final entry in newEpisodesMap.entries) {
+        final episodes = entry.value;
+
+        if (episodes.isNotEmpty) {
+          await _showNewEpisodeNotification(
+            notificationId++,
+            episodes,
+          );
+        }
+      }
+    } catch (e) {
+      // Silently fail - don't interrupt user experience
+    }
+  }
+
+  Future<void> _showSummaryNotification(
+      int totalEpisodes, int podcastCount) async {
+    const notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'podcast_episodes',
+        'New Podcast Episodes',
+        channelDescription: 'Notifications for new podcast episodes',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    await _flutterLocalNotificationsPlugin.show(
+      0, // Use ID 0 for summary notifications
+      'New Podcast Episodes',
+      '$totalEpisodes new episodes from $podcastCount podcasts',
+      notificationDetails,
+      payload: 'summary',
+    );
+  }
+
+  Future<void> _showNewEpisodeNotification(
+    int notificationId,
+    List<Episode> episodes,
+  ) async {
+    if (episodes.isEmpty) return;
+
+    final episode = episodes.first; // Show notification for the latest episode
+    const podcastTitle =
+        'Podcast'; // In a real app, you'd get this from the podcast data
+
+    const notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'podcast_episodes',
+        'New Podcast Episodes',
+        channelDescription: 'Notifications for new podcast episodes',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        icon: '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    String title;
+    String body;
+
+    if (episodes.length == 1) {
+      title = podcastTitle;
+      body = 'New episode: ${episode.title}';
+    } else {
+      title = podcastTitle;
+      body = '${episodes.length} new episodes, latest: ${episode.title}';
+    }
+
+    await _flutterLocalNotificationsPlugin.show(
+      notificationId,
+      title,
+      body,
+      notificationDetails,
+      payload: 'episode:${episode.id}',
+    );
+  }
+
+  /// Show notification when subscribed to a new podcast
+  Future<void> showSubscriptionNotification(String podcastTitle) async {
+    const notificationDetails = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'podcast_subscriptions',
+        'Podcast Subscriptions',
+        channelDescription: 'Notifications for podcast subscriptions',
+        importance: Importance.low,
+        priority: Priority.low,
+        icon: '@mipmap/ic_launcher',
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: false,
+        presentSound: false,
+      ),
+    );
+
+    await _flutterLocalNotificationsPlugin.show(
+      999, // Special ID for subscription notifications
+      'Subscribed',
+      'You\'re now subscribed to $podcastTitle',
+      notificationDetails,
+      payload: 'subscription',
+    );
   }
 }

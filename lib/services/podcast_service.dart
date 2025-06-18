@@ -123,10 +123,10 @@ class PodcastService {
 
         if (results.isNotEmpty) {
           final podcast = _mapItunesResultToPodcast(results.first);
-          
+
           // Fetch episodes for this podcast
           final episodes = await fetchEpisodesByPodcastId(id);
-          
+
           // Return podcast with episodes
           return podcast.copyWith(episodes: episodes);
         }
@@ -142,11 +142,11 @@ class PodcastService {
       // First, get the podcast feed URL from iTunes
       final url = '$_itunesLookupUrl?id=$podcastId&entity=podcast';
       final response = await http.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
         final List<dynamic> results = data['results'] ?? [];
-        
+
         if (results.isNotEmpty) {
           final feedUrl = results.first['feedUrl'];
           if (feedUrl != null) {
@@ -154,7 +154,7 @@ class PodcastService {
           }
         }
       }
-      
+
       // If we can't get the feed URL, return some mock episodes for demo
       return _generateMockEpisodes(podcastId);
     } catch (e) {
@@ -167,13 +167,13 @@ class PodcastService {
   Future<List<Episode>> _fetchEpisodesFromRssFeed(String feedUrl, String podcastId) async {
     try {
       final response = await http.get(Uri.parse(feedUrl));
-      
+
       if (response.statusCode == 200) {
         final document = XmlDocument.parse(response.body);
         final items = document.findAllElements('item');
-        
+
         List<Episode> episodes = [];
-        
+
         for (var item in items.take(10)) { // Limit to 10 most recent episodes
           try {
             final title = item.findElements('title').first.innerText;
@@ -181,7 +181,7 @@ class PodcastService {
             final audioUrl = _extractAudioUrl(item);
             final duration = _extractDuration(item);
             final publishDate = _extractPublishDate(item);
-            
+
             if (title.isNotEmpty && audioUrl.isNotEmpty) {
               episodes.add(Episode(
                 id: '${podcastId}_${episodes.length + 1}',
@@ -200,10 +200,10 @@ class PodcastService {
             continue;
           }
         }
-        
+
         return episodes.isNotEmpty ? episodes : _generateMockEpisodes(podcastId);
       }
-      
+
       return _generateMockEpisodes(podcastId);
     } catch (e) {
       return _generateMockEpisodes(podcastId);
@@ -212,22 +212,22 @@ class PodcastService {
 
   String _extractDescription(XmlElement item) {
     // Try different description fields
-    var desc = item.findElements('description').isNotEmpty 
+    var desc = item.findElements('description').isNotEmpty
         ? item.findElements('description').first.innerText
         : '';
-    
+
     if (desc.isEmpty) {
       desc = item.findElements('itunes:summary').isNotEmpty
           ? item.findElements('itunes:summary').first.innerText
           : '';
     }
-    
+
     if (desc.isEmpty) {
       desc = item.findElements('content:encoded').isNotEmpty
           ? item.findElements('content:encoded').first.innerText
           : '';
     }
-    
+
     return desc.isNotEmpty ? desc : 'Episode description not available.';
   }
 
@@ -241,13 +241,13 @@ class PodcastService {
         return url;
       }
     }
-    
+
     // Fallback to link tag
     final links = item.findElements('link');
     if (links.isNotEmpty) {
       return links.first.innerText;
     }
-    
+
     return 'https://example.com/audio.mp3'; // Fallback URL
   }
 
@@ -258,7 +258,7 @@ class PodcastService {
       final durationText = durationElements.first.innerText;
       return _parseDuration(durationText);
     }
-    
+
     // Default duration
     return const Duration(minutes: 30);
   }
@@ -288,7 +288,7 @@ class PodcastService {
       // Return default duration if parsing fails
       return const Duration(minutes: 30);
     }
-    
+
     return const Duration(minutes: 30);
   }
 
@@ -308,8 +308,8 @@ class PodcastService {
         }
       }
     }
-    
-    return DateTime.now().subtract(Duration(days: 1));
+
+    return DateTime.now().subtract(const Duration(days: 1));
   }
 
   // Generate mock episodes for demo purposes
@@ -422,5 +422,160 @@ class PodcastService {
 
     // In a real implementation, this would send the rating to the server
     return true;
+  }
+
+  // Subscription Management Methods
+
+  /// Fetch latest episodes for all subscribed podcasts
+  Future<List<Episode>> fetchLatestEpisodesForSubscriptions(List<String> subscribedPodcastIds) async {
+    List<Episode> allLatestEpisodes = [];
+
+    for (String podcastId in subscribedPodcastIds) {
+      try {
+        final episodes = await fetchEpisodesByPodcastId(podcastId);
+        // Get the latest 3 episodes from each subscribed podcast
+        final latestEpisodes = episodes.take(3).toList();
+        allLatestEpisodes.addAll(latestEpisodes);
+      } catch (e) {
+        // Continue with other podcasts if one fails
+        continue;
+      }
+    }
+
+    // Sort by publish date (newest first)
+    allLatestEpisodes.sort((a, b) => b.publishDate.compareTo(a.publishDate));
+
+    return allLatestEpisodes;
+  }
+
+  /// Check for new episodes since last check for a specific podcast
+  Future<List<Episode>> fetchNewEpisodesSince(String podcastId, DateTime lastCheckDate) async {
+    try {
+      final allEpisodes = await fetchEpisodesByPodcastId(podcastId);
+
+      // Filter episodes published after the last check date
+      final newEpisodes = allEpisodes
+          .where((episode) => episode.publishDate.isAfter(lastCheckDate))
+          .toList();
+
+      return newEpisodes;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Get subscription-specific podcast information with latest episode data
+  Future<Podcast?> fetchSubscriptionPodcastDetails(String podcastId) async {
+    try {
+      final podcast = await fetchPodcastById(podcastId);
+      if (podcast == null) return null;
+
+      // Enhance with subscription-specific data
+      return podcast.copyWith(
+        isSubscribed: true,
+        lastUpdated: DateTime.now(),
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Batch fetch subscription details for multiple podcasts
+  Future<List<Podcast>> fetchSubscriptionPodcastsBatch(List<String> podcastIds) async {
+    final List<Podcast> subscriptionPodcasts = [];
+
+    // Process in batches to avoid overwhelming the API
+    const batchSize = 5;
+
+    for (int i = 0; i < podcastIds.length; i += batchSize) {
+      final batchEnd = (i + batchSize < podcastIds.length) ? i + batchSize : podcastIds.length;
+      final batch = podcastIds.sublist(i, batchEnd);
+
+      final List<Future<Podcast?>> futures = batch.map((id) => fetchSubscriptionPodcastDetails(id)).toList();
+      final results = await Future.wait(futures);
+
+      // Add non-null results
+      for (final podcast in results) {
+        if (podcast != null) {
+          subscriptionPodcasts.add(podcast);
+        }
+      }
+
+      // Small delay between batches to be respectful to the API
+      if (i + batchSize < podcastIds.length) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+    }
+
+    return subscriptionPodcasts;
+  }
+
+  /// Check if podcast has new episodes since last check
+  Future<bool> hasNewEpisodes(String podcastId, DateTime lastCheckDate) async {
+    try {
+      final newEpisodes = await fetchNewEpisodesSince(podcastId, lastCheckDate);
+      return newEpisodes.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Get subscription statistics
+  Future<Map<String, dynamic>> getSubscriptionStats(List<String> subscribedPodcastIds) async {
+    int totalEpisodes = 0;
+    int totalListenTime = 0; // in minutes
+    int newEpisodesThisWeek = 0;
+
+    final oneWeekAgo = DateTime.now().subtract(const Duration(days: 7));
+
+    for (String podcastId in subscribedPodcastIds) {
+      try {
+        final episodes = await fetchEpisodesByPodcastId(podcastId);
+        totalEpisodes += episodes.length;
+
+        for (final episode in episodes) {
+          totalListenTime += episode.duration.inMinutes;
+
+          if (episode.publishDate.isAfter(oneWeekAgo)) {
+            newEpisodesThisWeek++;
+          }
+        }
+      } catch (e) {
+        // Continue with other podcasts
+        continue;
+      }
+    }
+
+    return {
+      'totalSubscriptions': subscribedPodcastIds.length,
+      'totalEpisodes': totalEpisodes,
+      'totalListenTimeMinutes': totalListenTime,
+      'totalListenTimeHours': (totalListenTime / 60).round(),
+      'newEpisodesThisWeek': newEpisodesThisWeek,
+    };
+  }
+
+  /// Auto-refresh subscriptions and check for new episodes
+  Future<Map<String, List<Episode>>> refreshSubscriptionsAndGetNewEpisodes(
+    Map<String, DateTime> podcastLastCheckDates
+  ) async {
+    final Map<String, List<Episode>> newEpisodesMap = {};
+
+    for (final entry in podcastLastCheckDates.entries) {
+      final podcastId = entry.key;
+      final lastCheckDate = entry.value;
+
+      try {
+        final newEpisodes = await fetchNewEpisodesSince(podcastId, lastCheckDate);
+        if (newEpisodes.isNotEmpty) {
+          newEpisodesMap[podcastId] = newEpisodes;
+        }
+      } catch (e) {
+        // Continue with other podcasts
+        continue;
+      }
+    }
+
+    return newEpisodesMap;
   }
 }

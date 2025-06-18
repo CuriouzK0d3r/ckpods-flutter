@@ -13,8 +13,6 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  final bool _showSpeedOptions = false;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,12 +147,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    playerProvider.formattedPosition,
+                                    playerProvider.positionString,
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
                                   ),
                                   Text(
-                                    playerProvider.formattedDuration,
+                                    playerProvider.durationString,
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
                                   ),

@@ -100,6 +100,89 @@ class AudioPlayerService extends BaseAudioHandler {
     await _audioPlayer.seek(newPosition < Duration.zero ? Duration.zero : newPosition);
   }
 
+  // Enhanced playback methods
+  
+  Future<void> playNext() async {
+    // This would be implemented with a queue system
+    // For now, it's a placeholder
+  }
+
+  Future<void> playPrevious() async {
+    // This would be implemented with a queue system
+    // For now, it's a placeholder
+  }
+
+  Future<void> togglePlayPause() async {
+    if (_audioPlayer.playing) {
+      await pause();
+    } else {
+      await play();
+    }
+  }
+
+  Future<void> seekToPercentage(double percentage) async {
+    final duration = _audioPlayer.duration;
+    if (duration != null) {
+      final newPosition = Duration(
+        milliseconds: (duration.inMilliseconds * percentage).round(),
+      );
+      await seek(newPosition);
+    }
+  }
+
+  Future<void> skipForward30() async {
+    await skipForward(const Duration(seconds: 30));
+  }
+
+  Future<void> skipBackward15() async {
+    await skipBackward(const Duration(seconds: 15));
+  }
+
+  Future<void> replay10() async {
+    await skipBackward(const Duration(seconds: 10));
+  }
+
+  // Get formatted position and duration strings
+  String get positionString {
+    return _formatDuration(_audioPlayer.position);
+  }
+
+  String get durationString {
+    final duration = _audioPlayer.duration;
+    return duration != null ? _formatDuration(duration) : '--:--';
+  }
+
+  String get remainingTimeString {
+    final duration = _audioPlayer.duration;
+    if (duration != null) {
+      final remaining = duration - _audioPlayer.position;
+      return '-${_formatDuration(remaining)}';
+    }
+    return '--:--';
+  }
+
+  String _formatDuration(Duration duration) {
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+
+    if (hours > 0) {
+      return '${hours.toString().padLeft(1, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    } else {
+      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
+  }
+
+  // Check if episode is currently playing
+  bool isEpisodePlaying(String episodeId) {
+    return _currentEpisode?.id == episodeId && _audioPlayer.playing;
+  }
+
+  // Check if episode is currently loaded (but may be paused)
+  bool isEpisodeLoaded(String episodeId) {
+    return _currentEpisode?.id == episodeId;
+  }
+
   @override
   Future<void> onTaskRemoved() async {
     await stop();

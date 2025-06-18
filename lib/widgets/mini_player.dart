@@ -83,52 +83,59 @@ class MiniPlayer extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  '${playerProvider.formattedPosition} / ${playerProvider.formattedDuration}',
+                  playerProvider.formattedProgress,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Skip Backward Button
-                    IconButton(
-                      icon: const Icon(Icons.replay),
-                      onPressed: () => playerProvider.skipBackward(),
-                      iconSize: 24,
-                    ),
-                    // Play/Pause Button
-                    if (playerProvider.isLoading)
-                      Container(
-                        width: 40,
-                        height: 40,
-                        padding: const EdgeInsets.all(8),
-                        child: const CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    else
-                      IconButton(
-                        icon: Icon(
-                          playerProvider.isPlaying
-                              ? Icons.pause
-                              : Icons.play_arrow,
-                        ),
-                        onPressed: playerProvider.togglePlayPause,
-                        iconSize: 32,
-                      ),
-                    // Skip Forward Button
-                    IconButton(
-                      icon: const Icon(Icons.forward_30),
-                      onPressed: () => playerProvider.skipForward(),
-                      iconSize: 24,
-                    ),
-                  ],
-                ),
+                trailing: _buildPlayerControls(playerProvider),
                 onTap: () => _showPlayerScreen(context),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPlayerControls(PlayerProvider playerProvider) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Skip Backward Button
+        IconButton(
+          icon: const Icon(Icons.replay_10),
+          onPressed: () => playerProvider.replay10(),
+          iconSize: 24,
+          tooltip: 'Replay 10s',
+        ),
+        // Play/Pause Button
+        if (playerProvider.isLoading)
+          Container(
+            width: 40,
+            height: 40,
+            padding: const EdgeInsets.all(8),
+            child: const CircularProgressIndicator(strokeWidth: 2),
+          )
+        else
+          IconButton(
+            icon: Icon(
+              playerProvider.isPlaying
+                  ? Icons.pause
+                  : Icons.play_arrow,
+            ),
+            onPressed: playerProvider.togglePlayPause,
+            iconSize: 32,
+            tooltip: playerProvider.isPlaying ? 'Pause' : 'Play',
+          ),
+        // Skip Forward Button
+        IconButton(
+          icon: const Icon(Icons.forward_30),
+          onPressed: () => playerProvider.skipForward30(),
+          iconSize: 24,
+          tooltip: 'Skip 30s',
+        ),
+      ],
     );
   }
 

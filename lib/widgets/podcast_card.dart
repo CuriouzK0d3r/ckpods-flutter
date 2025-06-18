@@ -3,15 +3,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../models/podcast.dart';
 import '../providers/podcast_provider.dart';
+import '../providers/player_provider.dart';
+import 'player_screen.dart';
 
 class PodcastCard extends StatelessWidget {
   final Podcast podcast;
   final VoidCallback? onTap;
+  final bool showSubscribeButton;
 
   const PodcastCard({
     super.key,
     required this.podcast,
     this.onTap,
+    this.showSubscribeButton = false,
   });
 
   @override
@@ -577,11 +581,24 @@ class _PodcastDetailsBottomSheetState extends State<PodcastDetailsBottomSheet> {
   }
 
   void _playEpisode(BuildContext context, Episode episode) {
-    // TODO: Implement episode playback
+    // Use PlayerProvider to play the episode
+    final playerProvider = context.read<PlayerProvider>();
+    playerProvider.playEpisode(episode);
+    
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Playing: ${episode.title}'),
         duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'View Player',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const PlayerScreen(),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -6,13 +6,16 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF1DB954); // Spotify green
   static const Color primaryDarkColor = Color(0xFF1ED760);
   static const Color secondaryColor = Color(0xFF191414); // Dark grey
-  static const Color backgroundColor = Color(0xFFFFFFFF); // Pure white for better contrast
+  static const Color backgroundColor =
+      Color(0xFFFFFFFF); // Pure white for better contrast
   static const Color darkBackgroundColor = Color(0xFF121212);
   static const Color surfaceColor = Color(0xFFFAFAFA); // Slightly off-white
   static const Color darkSurfaceColor = Color(0xFF181818);
   static const Color errorColor = Color(0xFFE53E3E);
-  static const Color textPrimaryColor = Color(0xFF000000); // Pure black for maximum contrast
-  static const Color textSecondaryColor = Color(0xFF666666); // Darker grey for better readability
+  static const Color textPrimaryColor =
+      Color(0xFF000000); // Pure black for maximum contrast
+  static const Color textSecondaryColor =
+      Color(0xFF666666); // Darker grey for better readability
   static const Color textDarkPrimaryColor = Color(0xFFFFFFFF);
   static const Color textDarkSecondaryColor = Color(0xFFB3B3B3);
 
@@ -27,8 +30,6 @@ class AppTheme {
         onSecondary: Colors.white,
         surface: surfaceColor,
         onSurface: textPrimaryColor,
-        background: backgroundColor,
-        onBackground: textPrimaryColor,
         error: errorColor,
         onError: Colors.white,
         outline: Color(0xFFE0E0E0), // Better border contrast
@@ -60,13 +61,14 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 2,
         color: surfaceColor,
         shadowColor: Color(0x1A000000), // Subtle shadow
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
-          side: BorderSide(color: Color(0xFFE0E0E0), width: 0.5), // Subtle border
+          side:
+              BorderSide(color: Color(0xFFE0E0E0), width: 0.5), // Subtle border
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -94,7 +96,7 @@ class AppTheme {
           ),
         ),
       ),
-      textTheme: TextTheme(
+      textTheme: const TextTheme(
         headlineLarge: TextStyle(
           color: textPrimaryColor,
           fontSize: 32,
@@ -233,7 +235,7 @@ class AppTheme {
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         elevation: 2,
         color: darkSurfaceColor,
         shape: RoundedRectangleBorder(
