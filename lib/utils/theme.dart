@@ -61,7 +61,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
       ),
-      cardTheme: const CardThemeData(
+      cardTheme: const CardTheme(
         elevation: 2,
         color: surfaceColor,
         shadowColor: Color(0x1A000000), // Subtle shadow
@@ -235,7 +235,7 @@ class AppTheme {
         elevation: 8,
         type: BottomNavigationBarType.fixed,
       ),
-      cardTheme: const CardThemeData(
+      cardTheme: const CardTheme(
         elevation: 2,
         color: darkSurfaceColor,
         shape: RoundedRectangleBorder(
