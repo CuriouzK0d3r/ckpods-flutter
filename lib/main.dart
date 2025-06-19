@@ -7,6 +7,7 @@ import 'providers/user_provider.dart';
 import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
 import 'services/database_service.dart';
+import 'services/audio_service_manager.dart';
 import 'utils/theme.dart';
 
 void main() async {
@@ -16,9 +17,10 @@ void main() async {
   try {
     if (!kIsWeb) {
       await DatabaseService().initDatabase();
-    }
-    if (!kIsWeb) {
       await NotificationService().initialize();
+      
+      // Initialize audio service for background playback and lockscreen controls
+      await AudioServiceManager.instance.initialize();
     }
   } catch (e) {
     debugPrint('Service initialization warning: $e');

@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/podcast.dart';
-import '../services/audio_player_service.dart';
+import '../services/audio_service_manager.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 
 class PlayerProvider with ChangeNotifier {
-  final AudioPlayerService _audioService = AudioPlayerService();
   final DatabaseService _databaseService = DatabaseService();
   final NotificationService _notificationService = NotificationService();
 
@@ -33,13 +32,18 @@ class PlayerProvider with ChangeNotifier {
       ? _position.inMilliseconds / _duration.inMilliseconds 
       : 0.0;
 
+  // Helper to get the audio service
+  get _audioService => AudioServiceManager.instance.audioPlayerService;
+
   PlayerProvider() {
     _initializePlayer();
   }
 
   void _initializePlayer() {
+    final audioService = AudioServiceManager.instance.audioPlayerService;
+    
     // Listen to position changes
-    _audioService.positionStream.listen((position) {
+    audioService.positionStream.listen((position) {
       _position = position;
       notifyListeners();
       
@@ -52,7 +56,7 @@ class PlayerProvider with ChangeNotifier {
     });
 
     // Listen to duration changes
-    _audioService.durationStream.listen((duration) {
+    audioService.durationStream.listen((duration) {
       if (duration != null) {
         _duration = duration;
         notifyListeners();
@@ -60,7 +64,7 @@ class PlayerProvider with ChangeNotifier {
     });
 
     // Listen to player state changes
-    _audioService.playerStateStream.listen((playerState) {
+    audioService.playerStateStream.listen((playerState) {
       _isPlaying = playerState.playing;
       _isLoading = playerState.processingState == ProcessingState.loading ||
                    playerState.processingState == ProcessingState.buffering;
@@ -73,7 +77,7 @@ class PlayerProvider with ChangeNotifier {
     });
 
     // Listen to speed changes
-    _audioService.speedStream.listen((speed) {
+    audioService.speedStream.listen((speed) {
       _speed = speed;
       notifyListeners();
     });
@@ -85,7 +89,8 @@ class PlayerProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await _audioService.playEpisode(episode);
+      final audioService = AudioServiceManager.instance.audioPlayerService;
+      await audioService.playEpisode(episode);
       _currentEpisode = episode;
       
       // Save episode to database

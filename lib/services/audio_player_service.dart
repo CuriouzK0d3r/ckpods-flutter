@@ -1,5 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_service/audio_service.dart';
+import 'package:flutter/foundation.dart';
 import '../models/podcast.dart';
 
 class AudioPlayerService extends BaseAudioHandler {
@@ -24,25 +25,94 @@ class AudioPlayerService extends BaseAudioHandler {
   double get speed => _audioPlayer.speed;
 
   Future<void> initialize() async {
-    // Set up audio session
-    await _audioPlayer.setAudioSource(
-      ConcatenatingAudioSource(children: []),
-    );
+    // Initialize audio session for background playback
+    try {
+      // Set up audio session for background playback
+      await _audioPlayer.setAudioSource(
+        ConcatenatingAudioSource(children: []),
+      );
+      
+      // Listen to player state changes and update playback state
+      _audioPlayer.playerStateStream.listen((playerState) {
+        final isPlaying = playerState.playing;
+        final processingState = _mapProcessingState(playerState.processingState);
+        
+        playbackState.add(PlaybackState(
+          controls: [
+            MediaControl.rewind,
+            if (isPlaying) MediaControl.pause else MediaControl.play,
+            MediaControl.fastForward,
+            MediaControl.stop,
+          ],
+          systemActions: const {
+            MediaAction.seek,
+            MediaAction.seekForward,
+            MediaAction.seekBackward,
+            MediaAction.rewind,
+            MediaAction.fastForward,
+          },
+          androidCompactActionIndices: const [0, 1, 2],
+          processingState: processingState,
+          playing: isPlaying,
+          updatePosition: _audioPlayer.position,
+          bufferedPosition: _audioPlayer.bufferedPosition,
+          speed: _audioPlayer.speed,
+          queueIndex: 0,
+        ));
+      });
+
+      // Listen to position updates
+      _audioPlayer.positionStream.listen((position) {
+        playbackState.add(playbackState.value.copyWith(
+          updatePosition: position,
+          bufferedPosition: _audioPlayer.bufferedPosition,
+        ));
+      });
+
+    } catch (e) {
+      debugPrint('AudioPlayerService initialization error: $e');
+    }
+  }
+
+  AudioProcessingState _mapProcessingState(ProcessingState state) {
+    switch (state) {
+      case ProcessingState.idle:
+        return AudioProcessingState.idle;
+      case ProcessingState.loading:
+        return AudioProcessingState.loading;
+      case ProcessingState.buffering:
+        return AudioProcessingState.buffering;
+      case ProcessingState.ready:
+        return AudioProcessingState.ready;
+      case ProcessingState.completed:
+        return AudioProcessingState.completed;
+    }
   }
 
   Future<void> playEpisode(Episode episode) async {
     try {
       _currentEpisode = episode;
       
-      // Set the media item for the notification
-      mediaItem.add(MediaItem(
+      // Create a detailed media item for rich lockscreen display
+      final mediaItem = MediaItem(
         id: episode.id,
-        album: episode.podcastId,
+        album: 'Podcast Episode',
         title: episode.title,
-        artist: 'Podcast Episode',
+        artist: 'CKPods',
         duration: episode.duration,
         artUri: episode.thumbnailUrl != null ? Uri.parse(episode.thumbnailUrl!) : null,
-      ));
+        displayTitle: episode.title,
+        displaySubtitle: 'Podcast Episode',
+        displayDescription: episode.description,
+        extras: {
+          'episodeId': episode.id,
+          'podcastId': episode.podcastId,
+          'audioUrl': episode.audioUrl,
+        },
+      );
+
+      // Set the media item for the notification and lockscreen
+      this.mediaItem.add(mediaItem);
 
       // Load and play the audio
       await _audioPlayer.setUrl(episode.audioUrl);
@@ -83,6 +153,16 @@ class AudioPlayerService extends BaseAudioHandler {
   @override
   Future<void> setSpeed(double speed) async {
     await _audioPlayer.setSpeed(speed);
+  }
+
+  @override
+  Future<void> fastForward() async {
+    await skipForward30();
+  }
+
+  @override
+  Future<void> rewind() async {
+    await skipBackward15();
   }
 
   Future<void> setVolume(double volume) async {
