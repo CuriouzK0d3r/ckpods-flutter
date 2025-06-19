@@ -285,7 +285,7 @@ class _EpisodeDetailScreenState extends State<EpisodeDetailScreen> {
           if (widget.episode.rating > 0) ...[
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.star,
                   color: Colors.amber,
                   size: 20,

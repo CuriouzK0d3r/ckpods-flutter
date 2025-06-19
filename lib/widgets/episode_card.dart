@@ -115,7 +115,7 @@ class EpisodeCard extends StatelessWidget {
                             ),
                             const Spacer(),
                             if (episode.rating > 0) ...[
-                              Icon(
+                              const Icon(
                                 Icons.star,
                                 size: 16,
                                 color: Colors.amber,

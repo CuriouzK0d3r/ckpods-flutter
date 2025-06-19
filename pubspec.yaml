@@ -20,7 +20,7 @@ dependencies:
   
   # Audio playback
   just_audio: ^0.9.36
-  audio_service: ^0.18.12
+  audio_service: ^0.18.13
   
   # Database
   sqflite: ^2.3.0
