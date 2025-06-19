@@ -24,15 +24,19 @@ class AudioServiceManager {
         builder: () => AudioPlayerService(),
         config: AudioServiceConfig(
           androidNotificationChannelId: 'com.ckpods.audio',
-          androidNotificationChannelName: 'CKPods Audio',
+          androidNotificationChannelName: 'CKPods Audio Playback',
           androidNotificationOngoing: true,
           androidShowNotificationBadge: true,
           androidStopForegroundOnPause: false,
           preloadArtwork: true,
-          androidNotificationChannelDescription: 'CKPods podcast audio playback',
+          androidNotificationChannelDescription: 'Podcast audio playback and media controls',
           androidNotificationIcon: 'drawable/ic_launcher',
           fastForwardInterval: const Duration(seconds: 30),
           rewindInterval: const Duration(seconds: 15),
+          // Enhanced Android-specific settings
+          androidNotificationClickStartsActivity: true,
+          artDownscaleWidth: 256,
+          artDownscaleHeight: 256,
         ),
       );
 

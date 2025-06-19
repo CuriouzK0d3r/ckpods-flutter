@@ -50,14 +50,18 @@ class AudioPlayerService extends BaseAudioHandler {
             MediaAction.seekBackward,
             MediaAction.rewind,
             MediaAction.fastForward,
+            MediaAction.setSpeed,
           },
-          androidCompactActionIndices: const [0, 1, 2],
+          androidCompactActionIndices: const [0, 1, 2], // Show rewind, play/pause, fast forward in compact view
           processingState: processingState,
           playing: isPlaying,
           updatePosition: _audioPlayer.position,
           bufferedPosition: _audioPlayer.bufferedPosition,
           speed: _audioPlayer.speed,
           queueIndex: 0,
+          // Android-specific enhancements
+          repeatMode: AudioServiceRepeatMode.none,
+          shuffleMode: AudioServiceShuffleMode.none,
         ));
       });
 
@@ -163,6 +167,39 @@ class AudioPlayerService extends BaseAudioHandler {
   @override
   Future<void> rewind() async {
     await skipBackward15();
+  }
+
+  // Android-specific media session callbacks
+  @override
+  Future<void> onNotificationDeleted() async {
+    await stop();
+  }
+
+  @override
+  Future<void> customAction(String name, [Map<String, dynamic>? extras]) async {
+    switch (name) {
+      case 'replay_10':
+        await replay10();
+        break;
+      case 'skip_30':
+        await skipForward30();
+        break;
+      default:
+        debugPrint('Unknown custom action: $name');
+    }
+  }
+
+  // Enhanced Android lockscreen support
+  @override
+  Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {
+    // Podcasts typically don't use repeat mode, but we can handle it
+    debugPrint('Repeat mode changed: $repeatMode');
+  }
+
+  @override
+  Future<void> setShuffleMode(AudioServiceShuffleMode shuffleMode) async {
+    // Podcasts typically don't use shuffle mode, but we can handle it
+    debugPrint('Shuffle mode changed: $shuffleMode');
   }
 
   Future<void> setVolume(double volume) async {
