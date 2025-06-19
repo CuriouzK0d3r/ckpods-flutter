@@ -121,14 +121,14 @@ class _SubscriptionIntegrationExampleState
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 12),
-                    Row(
+                    const Row(
                       children: [
                         QuickSubscribeButton(
                           podcastId: 'example-podcast-id',
                           podcastTitle: 'Example Podcast',
                         ),
-                        const SizedBox(width: 8),
-                        const Text('Minimal subscription button'),
+                        SizedBox(width: 8),
+                        Text('Minimal subscription button'),
                       ],
                     ),
                   ],
