@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/podcast.dart';
-import '../providers/podcast_provider.dart';
-import '../providers/player_provider.dart';
-import '../widgets/episode_card.dart';
-import '../widgets/subscription_button.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ckpods_flutter/models/podcast_provider.dart';
+import 'package:ckpods_flutter/models/podcast.dart';
 
 class PodcastDetailScreen extends StatefulWidget {
   final Podcast podcast;
 
-  const PodcastDetailScreen({
-    super.key,
-    required this.podcast,
-  });
+  const PodcastDetailScreen({super.key, required this.podcast});
 
   @override
   State<PodcastDetailScreen> createState() => _PodcastDetailScreenState();
 }
 
 class _PodcastDetailScreenState extends State<PodcastDetailScreen> {
-  bool _isLoading = true;
-  List<Episode> _episodes = [];
-  String? _errorMessage;
+  List<Episode> episodes = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -30,329 +24,299 @@ class _PodcastDetailScreenState extends State<PodcastDetailScreen> {
   }
 
   Future<void> _loadEpisodes() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final provider = Provider.of<PodcastProvider>(context, listen: false);
-      final episodes = await provider.fetchEpisodesByPodcastId(widget.podcast.id);
-      
-      if (mounted) {
-        setState(() {
-          _episodes = episodes;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Failed to load episodes: $e';
-          _isLoading = false;
-        });
-      }
+    final provider = context.read<PodcastProvider>();
+    final fetchedEpisodes = await provider.getEpisodes(widget.podcast);
+    if (mounted) {
+      setState(() {
+        episodes = fetchedEpisodes;
+        isLoading = false;
+      });
     }
   }
 
-  Future<void> _refreshEpisodes() async {
-    await _loadEpisodes();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Consumer<PodcastProvider>(
+        builder: (context, provider, child) {
+          final isSubscribed = provider.isSubscribed(widget.podcast);
+
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 300,
+                pinned: true,
+                backgroundColor: Colors.white,
+                leading: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                actions: [
+                  IconButton(
+                    icon: Icon(
+                      isSubscribed ? Icons.bookmark : Icons.bookmark_border,
+                      color: Colors.black,
+                    ),
+                    onPressed: () =>
+                        provider.toggleSubscription(widget.podcast),
+                  ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.grey, Colors.white],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 60),
+                        Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: CachedNetworkImage(
+                              imageUrl: widget.podcast.imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.music_note,
+                                  size: 80,
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(
+                                  Icons.music_note,
+                                  size: 80,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.podcast.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.podcast.artist,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'News • 20 min',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () =>
+                              provider.toggleSubscription(widget.podcast),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isSubscribed ? Colors.grey : Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            isSubscribed ? 'Subscribed' : 'Subscribe',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    'Episodes',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              if (isLoading)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                )
+              else if (episodes.isEmpty)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(32.0),
+                      child: Text('No episodes available'),
+                    ),
+                  ),
+                )
+              else
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final episode = episodes[index];
+                      return _buildEpisodeTile(context, episode, provider);
+                    },
+                    childCount: episodes.length,
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
-  void _playEpisode(Episode episode) {
-    final playerProvider = Provider.of<PlayerProvider>(context, listen: false);
-    playerProvider.playEpisode(episode);
-    
-    // Show a snackbar to confirm playback started
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Playing: ${episode.title}'),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'View Player',
+  Widget _buildEpisodeTile(
+      BuildContext context, Episode episode, PodcastProvider provider) {
+    final isCurrentEpisode = provider.currentEpisode?.id == episode.id;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isCurrentEpisode ? Colors.blue.withOpacity(0.1) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCurrentEpisode
+              ? Colors.blue.withOpacity(0.3)
+              : Colors.grey.withOpacity(0.2),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: CachedNetworkImage(
+            imageUrl: episode.imageUrl,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => Container(
+              width: 60,
+              height: 60,
+              color: Colors.grey[300],
+              child: const Icon(Icons.music_note),
+            ),
+            errorWidget: (context, url, error) => Container(
+              width: 60,
+              height: 60,
+              color: Colors.grey[300],
+              child: const Icon(Icons.music_note),
+            ),
+          ),
+        ),
+        title: Text(
+          episode.title,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: isCurrentEpisode ? Colors.blue : Colors.black,
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              _formatDate(episode.publishDate),
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: Icon(
+            isCurrentEpisode && provider.isPlaying
+                ? Icons.pause_circle_filled
+                : Icons.play_circle_filled,
+            color: Colors.blue,
+            size: 32,
+          ),
           onPressed: () {
-            // Navigate to player screen or mini player
-            Navigator.of(context).pushNamed('/player');
+            if (isCurrentEpisode) {
+              provider.togglePlayPause();
+            } else {
+              provider.playEpisode(episode);
+            }
           },
         ),
       ),
     );
   }
 
-  void _navigateToEpisodeDetail(Episode episode) {
-    Navigator.of(context).pushNamed('/episode-detail', arguments: episode);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          // App bar with podcast artwork and info
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.black.withOpacity(0.3),
-                    ],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    // Background artwork
-                    Positioned.fill(
-                      child: Image.network(
-                        widget.podcast.artworkUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: Icon(
-                              Icons.podcasts,
-                              size: 64,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    // Podcast info overlay
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.8),
-                            ],
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              widget.podcast.title,
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              widget.podcast.publisher,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.white70,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: Colors.amber,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${widget.podcast.rating.toStringAsFixed(1)} (${widget.podcast.ratingCount})',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Icon(
-                                  Icons.headphones,
-                                  size: 16,
-                                  color: Colors.white70,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${widget.podcast.episodeCount} episodes',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          
-          // Podcast description and subscription button
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Subscription button
-                  Center(
-                    child: SubscriptionButton(podcast: widget.podcast),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Description
-                  Text(
-                    'About',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.podcast.description,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  
-                  // Episodes header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Episodes',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (_episodes.isNotEmpty)
-                        Text(
-                          '${_episodes.length} episodes',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ),
-          
-          // Episodes list
-          _buildEpisodesList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEpisodesList() {
-    if (_isLoading) {
-      return const SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: EdgeInsets.all(32),
-            child: CircularProgressIndicator(),
-          ),
-        ),
-      );
-    }
-
-    if (_errorMessage != null) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 48,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _refreshEpisodes,
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (_episodes.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.music_note_outlined,
-                  size: 48,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No Episodes Available',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'This podcast doesn\'t have any episodes yet',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          final episode = _episodes[index];
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: EpisodeCard(
-              episode: episode,
-              onTap: () => _navigateToEpisodeDetail(episode),
-              onPlay: () => _playEpisode(episode),
-              showPodcastTitle: false, // Don't show podcast title since we're already in the podcast
-            ),
-          );
-        },
-        childCount: _episodes.length,
-      ),
-    );
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}';
   }
 }

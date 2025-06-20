@@ -1,157 +1,85 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'podcast.g.dart';
-
-@JsonSerializable()
 class Podcast {
   final String id;
-  final String title;
+  final String name;
+  final String artist;
+  final String imageUrl;
+  final String feedUrl;
   final String description;
-  final String artworkUrl;
-  final String publisher;
-  final String category;
-  final String language;
-  final int episodeCount;
-  final DateTime? lastUpdated;
-  final double rating;
-  final int ratingCount;
   final List<Episode> episodes;
-  final bool isFavorite;
-  final bool isSubscribed;
 
   Podcast({
     required this.id,
-    required this.title,
+    required this.name,
+    required this.artist,
+    required this.imageUrl,
+    required this.feedUrl,
     required this.description,
-    required this.artworkUrl,
-    required this.publisher,
-    required this.category,
-    required this.language,
-    this.episodeCount = 0,
-    this.lastUpdated,
-    this.rating = 0.0,
-    this.ratingCount = 0,
     this.episodes = const [],
-    this.isFavorite = false,
-    this.isSubscribed = false,
   });
 
-  factory Podcast.fromJson(Map<String, dynamic> json) =>
-      _$PodcastFromJson(json);
-  Map<String, dynamic> toJson() => _$PodcastToJson(this);
-
-  Podcast copyWith({
-    String? id,
-    String? title,
-    String? description,
-    String? artworkUrl,
-    String? publisher,
-    String? category,
-    String? language,
-    int? episodeCount,
-    DateTime? lastUpdated,
-    double? rating,
-    int? ratingCount,
-    List<Episode>? episodes,
-    bool? isFavorite,
-    bool? isSubscribed,
-  }) {
+  factory Podcast.fromJson(Map<String, dynamic> json) {
     return Podcast(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      artworkUrl: artworkUrl ?? this.artworkUrl,
-      publisher: publisher ?? this.publisher,
-      category: category ?? this.category,
-      language: language ?? this.language,
-      episodeCount: episodeCount ?? this.episodeCount,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
-      rating: rating ?? this.rating,
-      ratingCount: ratingCount ?? this.ratingCount,
-      episodes: episodes ?? this.episodes,
-      isFavorite: isFavorite ?? this.isFavorite,
-      isSubscribed: isSubscribed ?? this.isSubscribed,
+      id: json['collectionId']?.toString() ?? '',
+      name: json['collectionName'] ?? '',
+      artist: json['artistName'] ?? '',
+      imageUrl: json['artworkUrl600'] ?? json['artworkUrl100'] ?? '',
+      feedUrl: json['feedUrl'] ?? '',
+      description: json['description'] ?? '',
     );
   }
 }
 
-@JsonSerializable()
 class Episode {
   final String id;
-  final String podcastId;
   final String title;
   final String description;
   final String audioUrl;
-  final Duration duration;
+  final String imageUrl;
   final DateTime publishDate;
-  final String? thumbnailUrl;
-  final double rating;
-  final int ratingCount;
-  final bool isPlayed;
-  final bool isDownloaded;
-  final Duration? playbackPosition;
+  final Duration duration;
 
   Episode({
     required this.id,
-    required this.podcastId,
     required this.title,
     required this.description,
     required this.audioUrl,
-    required this.duration,
+    required this.imageUrl,
     required this.publishDate,
-    this.thumbnailUrl,
-    this.rating = 0.0,
-    this.ratingCount = 0,
-    this.isPlayed = false,
-    this.isDownloaded = false,
-    this.playbackPosition,
+    required this.duration,
   });
 
-  factory Episode.fromJson(Map<String, dynamic> json) =>
-      _$EpisodeFromJson(json);
-  Map<String, dynamic> toJson() => _$EpisodeToJson(this);
+  factory Episode.fromXml(dynamic item, String podcastImageUrl) {
+    final title = item.findElements('title').first.text;
+    final description = item.findElements('description').first.text;
 
-  Episode copyWith({
-    String? id,
-    String? podcastId,
-    String? title,
-    String? description,
-    String? audioUrl,
-    Duration? duration,
-    DateTime? publishDate,
-    String? thumbnailUrl,
-    double? rating,
-    int? ratingCount,
-    bool? isPlayed,
-    bool? isDownloaded,
-    Duration? playbackPosition,
-  }) {
-    return Episode(
-      id: id ?? this.id,
-      podcastId: podcastId ?? this.podcastId,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      audioUrl: audioUrl ?? this.audioUrl,
-      duration: duration ?? this.duration,
-      publishDate: publishDate ?? this.publishDate,
-      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
-      rating: rating ?? this.rating,
-      ratingCount: ratingCount ?? this.ratingCount,
-      isPlayed: isPlayed ?? this.isPlayed,
-      isDownloaded: isDownloaded ?? this.isDownloaded,
-      playbackPosition: playbackPosition ?? this.playbackPosition,
-    );
-  }
-
-  String get formattedDuration {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-
-    if (hours > 0) {
-      return '${hours}h ${minutes}m';
-    } else {
-      return '${minutes}m ${seconds}s';
+    String audioUrl = '';
+    final enclosures = item.findElements('enclosure');
+    if (enclosures.isNotEmpty) {
+      audioUrl = enclosures.first.getAttribute('url') ?? '';
     }
+
+    String imageUrl = podcastImageUrl;
+    final itunesImage = item.findElements('itunes:image');
+    if (itunesImage.isNotEmpty) {
+      imageUrl = itunesImage.first.getAttribute('href') ?? podcastImageUrl;
+    }
+
+    DateTime publishDate = DateTime.now();
+    try {
+      final pubDateStr = item.findElements('pubDate').first.text;
+      publishDate = DateTime.parse(pubDateStr);
+    } catch (e) {
+      // Use current date if parsing fails
+    }
+
+    return Episode(
+      id: title.hashCode.toString(),
+      title: title,
+      description: description,
+      audioUrl: audioUrl,
+      imageUrl: imageUrl,
+      publishDate: publishDate,
+      duration: const Duration(minutes: 30), // Default duration
+    );
   }
 }

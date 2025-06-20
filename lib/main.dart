@@ -1,41 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:io' show Platform;
-import 'providers/podcast_provider.dart';
-import 'providers/player_provider.dart';
-import 'providers/user_provider.dart';
-import 'screens/home_screen.dart';
-import 'screens/podcast_detail_screen.dart';
-import 'screens/episode_detail_screen.dart';
-import 'services/notification_service.dart';
-import 'services/database_service.dart';
-import 'services/audio_service_manager.dart';
-import 'services/android_media_notification_helper.dart';
-import 'utils/theme.dart';
-import 'models/podcast.dart';
+import 'package:ckpods_flutter/models/podcast_provider.dart';
+import 'package:ckpods_flutter/screens/main_screen.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize services (skip database on web due to SQLite limitations)
-  try {
-    if (!kIsWeb) {
-      await DatabaseService().initDatabase();
-      await NotificationService().initialize();
-      
-      // Initialize audio service for background playback and lockscreen controls
-      await AudioServiceManager.instance.initialize();
-      
-      // Initialize Android-specific media notification helper
-      if (Platform.isAndroid) {
-        await AndroidMediaNotificationHelper().initialize();
-      }
-    }
-  } catch (e) {
-    debugPrint('Service initialization warning: $e');
-  }
-
+void main() {
   runApp(const MyApp());
 }
 
@@ -44,36 +12,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => PodcastProvider()),
-        ChangeNotifierProvider(create: (_) => PlayerProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-      ],
+    return ChangeNotifierProvider(
+      create: (context) => PodcastProvider(),
       child: MaterialApp(
-        title: 'CKPods - Podcast App',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: kIsWeb ? ThemeMode.light : ThemeMode.system, // Force light theme on web
-        home: const HomeScreen(),
+        title: 'CKPods',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            foregroundColor: Colors.black,
+            titleTextStyle: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Colors.white,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            elevation: 8,
+          ),
+        ),
+        home: const MainScreen(),
         debugShowCheckedModeBanner: false,
-        // Add routes for navigation
-        onGenerateRoute: (settings) {
-          switch (settings.name) {
-            case '/podcast-detail':
-              final podcast = settings.arguments as Podcast;
-              return MaterialPageRoute(
-                builder: (context) => PodcastDetailScreen(podcast: podcast),
-              );
-            case '/episode-detail':
-              final episode = settings.arguments as Episode;
-              return MaterialPageRoute(
-                builder: (context) => EpisodeDetailScreen(episode: episode),
-              );
-            default:
-              return null;
-          }
-        },
       ),
     );
   }
